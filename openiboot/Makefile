@@ -35,7 +35,7 @@ ARCHFLAGS          += -mlittle-endian -mfpu=vfp -mthumb -mthumb-interwork
 LIBRARIES          += -lgcc -nostdlib
 INC                += -Iincludes
 CFLAGS             += -Wall -Werror
-LDFLAGS            += -Ttext=$(LOAD) --nostdlib
+LDFLAGS            += -Ttext=$(LOAD) -nostdlib
 VERSION             = "0.1"
 COMMIT              = $(shell git log | head -n1 | cut -b8-14)
 BUILD               = "$(COMMIT)"
