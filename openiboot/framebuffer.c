@@ -31,11 +31,11 @@ inline int getCharPixel(OpenIBootFont* font, int ch, int x, int y) {
 	return (font->data[bitIndex / 8] >> (bitIndex % 8)) & 0x1;
 }
 
-inline volatile uint32_t* PixelFromCoords(register uint32_t x, register uint32_t y) {
+static inline volatile uint32_t* PixelFromCoords(register uint32_t x, register uint32_t y) {
 	return CurFramebuffer + (y * FBWidth) + x;
 }
 
-inline volatile uint16_t* PixelFromCoords565(register uint32_t x, register uint32_t y) {
+static inline volatile uint16_t* PixelFromCoords565(register uint32_t x, register uint32_t y) {
 	return ((uint16_t*)CurFramebuffer) + (y * FBWidth) + x;
 }
 
