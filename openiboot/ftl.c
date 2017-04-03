@@ -1512,7 +1512,7 @@ error_release:
 }
 
 static int FTL_GetStruct(FTLStruct type, void** data, int* size) {
-	switch(type) {
+	switch((int)type) {
 		case FTLCountsTableSID:
 			*data = &FTLCountsTable;
 			*size = sizeof(FTLCountsTable);
@@ -1523,7 +1523,7 @@ static int FTL_GetStruct(FTLStruct type, void** data, int* size) {
 }
 
 static int VFL_GetStruct(FTLStruct type, void** data, int* size) {
-	switch(type) {
+	switch((int)type) {
 		case VFLData1SID:
 			*data = &VFLData1;
 			*size = sizeof(VFLData1);
