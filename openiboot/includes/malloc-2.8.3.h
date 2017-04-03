@@ -31,8 +31,6 @@
 extern "C" {
 #endif
 
-#include <stddef.h>   /* for size_t */
-
 #if !ONLY_MSPACES
 
 #ifndef USE_DL_PREFIX
