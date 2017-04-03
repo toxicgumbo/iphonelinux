@@ -1374,8 +1374,8 @@ static int FTL_Restore() {
 		int bSequential = 1;
 		uint32_t aHighestUSN = 0;
 		uint32_t bHighestUSN = 0;
-		uint32_t* mapBlockUSN;
-		uint32_t* mapBlockLPN;
+		//uint32_t* mapBlockUSN;
+		//uint32_t* mapBlockLPN;
 		uint32_t* logBlockUSN;
 		uint32_t* logBlockLPN;
 		int page;
@@ -1423,9 +1423,9 @@ static int FTL_Restore() {
 		{
 			pLog[i].wVbn = blockB;
 			pawMapTable[pLog[i].wLbn] = blockA;
-			mapBlockUSN = usnA;
+			//mapBlockUSN = usnA;
 			logBlockUSN = usnB;
-			mapBlockLPN = lpnA;
+			//mapBlockLPN = lpnA;
 			logBlockLPN = lpnB;
 			if(bHighestUSN > highest_usn)
 				highest_usn = bHighestUSN;
@@ -1433,9 +1433,9 @@ static int FTL_Restore() {
 		{
 			pLog[i].wVbn = blockA;
 			pawMapTable[pLog[i].wLbn] = blockB;
-			mapBlockUSN = usnB;
+			//mapBlockUSN = usnB;
 			logBlockUSN = usnA;
-			mapBlockLPN = lpnB;
+			//mapBlockLPN = lpnB;
 			logBlockLPN = lpnA;
 			if(aHighestUSN > highest_usn)
 				highest_usn = aHighestUSN;
