@@ -34,6 +34,8 @@ char createImage(char* inElf, size_t inElfSize, char** outImage, size_t* outImag
 	return 1;
 }
 
+int init_libxpwn();
+
 int main(int argc, char* argv[]) {
 	char* inElf;
 	size_t inElfSize;
