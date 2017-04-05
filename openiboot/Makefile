@@ -67,7 +67,7 @@ ifeq ($(DEBUG),YES)
 endif
 
 # Tools
-CROSS              ?= arm-elf-
+CROSS              ?= arm-none-eabi-
 CC                  = $(CROSS)gcc
 OBJCOPY             = $(CROSS)objcopy
 COMPILE             = $(CC) $(INC) $(CFLAGS) $(ARCHFLAGS) -c $< -o $@
