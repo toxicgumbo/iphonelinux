@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "malloc-2.8.3.h"
 #include "openiboot.h"
 #include <stdarg.h>
 
