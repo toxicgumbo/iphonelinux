@@ -32,7 +32,7 @@ void pmu_poweroff() {
 }
 
 void pmu_set_iboot_stage(uint8_t stage) {
-	int8_t state;
+	int8_t state = 0;
 	pmu_get_gpmem_reg(PMU_IBOOTSTATE, (uint8_t*) &state);
 
 	if(state >= 0) {

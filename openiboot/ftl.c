@@ -1222,8 +1222,8 @@ static int FTL_Restore() {
 
 			int newMCSeq = determine_block_type(candidate, &candidateUSN);
 
-			uint16_t newLCandidate;
-			uint32_t newLCandidateUSN;
+			uint16_t newLCandidate = 0;
+			uint32_t newLCandidateUSN = 0;
 
 			if(origMCSeq && newMCSeq)
 			{
