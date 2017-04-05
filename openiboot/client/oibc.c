@@ -137,6 +137,8 @@ void* doInput(void* threadid) {
 			free(commandBuffer);
 
 		commandBuffer = readline(NULL);
+		int add_history();
+		int write_history();
 		if(commandBuffer && *commandBuffer) {
 			add_history(commandBuffer);
 			write_history(".oibc-history");
@@ -228,6 +230,7 @@ void* doInput(void* threadid) {
 	pthread_exit(NULL);
 }
 
+int read_history();
 int main(int argc, char* argv[]) {
 
 	read_history(".oibc-history");
