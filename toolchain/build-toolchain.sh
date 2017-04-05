@@ -8,19 +8,23 @@
 #########  Setup Variables  ###########
 MYDIR="$PWD/`dirname $0`"
 declare -i CPU="$(cat /proc/cpuinfo | grep processor | wc -l) + 1"
-# Package URL
-PKG_MIRROR="http://www.gnuarm.com"
 
-# Package Verions
-PKG_BINUTILS="binutils-2.17.tar.bz2"
-PKG_GCC411="gcc-4.1.1.tar.bz2"
-PKG_NEWLIB="newlib-1.14.0.tar.gz"
+# Package Versions. You only have to change these here. 
+VER_BINUTILS="binutils-2.28"
+VER_GCC="gcc-6.3.0"
+VER_NEWLIB="newlib-2.5.0.20170323"
 
-# Package Patches
-PATCH_GCC411_ARMELF="t-arm-elf.patch"
-PATCH_NEWLIB_MAKEINFO="newlib-1.14.0-missing-makeinfo.patch"
+# Package Archives
+PKG_BINUTILS="$VER_BINUTILS.tar.bz2"
+PKG_GCC="$VER_GCC.tar.bz2"
+PKG_NEWLIB="$VER_NEWLIB.tar.gz"
 
+# Package URLs
+MIRROR_BINUTILS="http://ftp.gnu.org/gnu/binutils/$PKG_BINUTILS"
+MIRROR_GCC="http://ftp.gnu.org/gnu/gcc/$VER_GCC/$PKG_GCC"
+MIRROR_NEWLIB="ftp://sourceware.org/pub/newlib/$PKG_NEWLIB"
 
+# Define installation path here 
 if [ -z "$IPHONELINUXDEV" ]; then
 	PREFIX=/usr/local
 	NEEDROOT=1
@@ -30,14 +34,13 @@ else
 fi
 export PATH="$PATH:$PREFIX/bin"
 
-# Check for different toolchain prefix
+# Check for different toolchain prefix (adjust as necessary)
 if [ -z "$TOOLCHAIN_PATH" ]; then
   TOOLCHAIN_PATH="/tmp/ipl-toolchain"
 fi
 
-#LOG FILE
+# Log file
 BUILDLOG=build.log
-
 
 
 #########  Helper functions  ###########
@@ -68,8 +71,6 @@ log() {
 	#execute command redirecting to the log file
 	"$@" >> $TOOLCHAIN_PATH/$BUILDLOG 2>&1
 }
-# Create log file
-echo > $TOOLCHAIN_PATH/$BUILDLOG
 
 STAGE=$2
 STAGE_MSG=""
@@ -97,10 +98,16 @@ msg() {
 
 #########  Quick tests  ###########
 
+# Check if root. If so, create toolchain destination dir and start logging
 if [ "$NEEDROOT" == "1" -a "$(id -u)" != "0" ]; then
 	echo "This script must be run as root" 1>&2
 	exit 1
+else
+	if [ ! -d $TOOLCHAIN_PATH ]; then
+		mkdir $TOOLCHAIN_PATH
+	fi
 fi
+echo > $TOOLCHAIN_PATH/$BUILDLOG
 
 # check for make or clean
 case "$1" in
@@ -128,15 +135,12 @@ stage_setup() {
 		checkRet "failed to create $TOOLCHAIN_PATH/$dir"
 		echo "  - $TOOLCHAIN_PATH/$dir"
 	done
-
-	# Copy patch files
-	cp $MYDIR/*.patch $TOOLCHAIN_PATH
 }
 
 stage_download() {
 	echo "- Downloading packages"
 
-	for pkg in "$PKG_BINUTILS" "$PKG_GCC411" "$PKG_NEWLIB"; do
+	for pkg in "$PKG_BINUTILS" "$PKG_GCC" "$PKG_NEWLIB"; do
 	
 		if [ -e $TOOLCHAIN_PATH/src/$pkg ];
 		then
@@ -145,7 +149,18 @@ stage_download() {
 			# Download to a .tmp file so that if the download is interupted
 			# we don't think that the file is downloaded
 			echo "  - Downloading $pkg"
-			log wget $PKG_MIRROR/$pkg -O $TOOLCHAIN_PATH/src/$pkg.tmp
+
+			if [ $pkg = "$PKG_BINUTILS" ];
+			then
+				log wget $MIRROR_BINUTILS -O $TOOLCHAIN_PATH/src/$pkg.tmp
+			else
+				if [ $pkg = "$PKG_GCC" ]; then
+					log wget $MIRROR_GCC -O $TOOLCHAIN_PATH/src/$pkg.tmp
+				else	
+					log wget $MIRROR_NEWLIB -O $TOOLCHAIN_PATH/src/$pkg.tmp
+				fi
+			fi
+
 			checkRet "Failed to retrive $pkg"
 			mv $TOOLCHAIN_PATH/src/$pkg{.tmp,} # move file.tmp to file
 			echo "  - $pkg download complete"
@@ -163,7 +178,7 @@ stage_binutils_extract() {
 stage_binutils_configure() {
 	echo "- Configuring binutils"
 	cd $TOOLCHAIN_PATH/binutils-build
-	log ../binutils-2.17/configure --target=arm-elf --prefix=$PREFIX \
+	log ../$VER_BINUTILS/configure --target=arm-none-eabi --prefix=$PREFIX \
 			--enable-interwork --enable-multilib --disable-werror
 	checkRet "Failed to configure binutils"
 }
@@ -185,8 +200,8 @@ stage_binutils_install() {
 stage_gcc_extract() {
 	echo "- Extracting GCC"
 	cd $TOOLCHAIN_PATH
-	log tar -jxvf $TOOLCHAIN_PATH/src/$PKG_GCC411
-	checkRet "Failed to extract package $PKG_GCC411"
+	log tar -jxvf $TOOLCHAIN_PATH/src/$PKG_GCC
+	checkRet "Failed to extract package $PKG_GCC"
 }
 
 stage_newlib_extract() {
@@ -196,20 +211,14 @@ stage_newlib_extract() {
 	checkRet "Failed to extract package $PKG_NEWLIB"
 }
 
-stage_gcc_patch() {
-	echo "- Patching GCC for t-arm-elf"
-	cd $TOOLCHAIN_PATH
-	log patch -p0 < $PATCH_GCC411_ARMELF
-	checkRet "Failed to apply patch for t-arm-elf"
-}
-
 stage_gcc_configure() {
 	echo "- Configuring GCC"
 	cd $TOOLCHAIN_PATH/gcc-build
-	log ../gcc-4.1.1/configure --target=arm-elf --prefix=$PREFIX \
+	log ../$VER_GCC/configure --target=arm-none-eabi --prefix=$PREFIX \
 			--enable-interwork --enable-multilib --with-fpu=vfp \
 			--enable-languages="c,c++" --with-newlib \
-			--with-headers=../newlib-1.14.0/newlib/libc/include --disable-werror
+			--with-headers=../$VER_NEWLIB/newlib/libc/include \
+			--with-system-zlib --disable-werror
 	checkRet "Failed to configure gcc"
 }
 
@@ -227,26 +236,12 @@ stage_gcc_install() {
 	checkRet "Failed to install GCC part 1"
 }
 
-stage_newlib_patch() {
-	echo "- Patching Newlib for makeinfo"
-	cd $TOOLCHAIN_PATH
-	log patch -p0 < $PATCH_NEWLIB_MAKEINFO
-	checkRet "Failed to apply patch for newlib makeinfo"
-}
-
 stage_newlib_configure() {
 	echo "- Configuring Newlib"
 	cd $TOOLCHAIN_PATH/newlib-build
-	log ../newlib-1.14.0/configure --target=arm-elf --prefix=$PREFIX \
+	log ../$VER_NEWLIB/configure --target=arm-none-eabi --prefix=$PREFIX \
 		--enable-interwork --enable-multilib --disable-werror
 	checkRet "Failed to configure newlib"
-}
-
-stage_makesymlink() {
-	echo "- Making arm-elf-cc symlink"
-	cd $TOOLCHAIN_PATH/newlib-build
-	ln -s arm-elf-gcc $PREFIX/bin/arm-elf-cc
-	checkRet "Failed to create symlink"
 }
 
 stage_newlib_build() {
@@ -295,7 +290,6 @@ msg "Starting GCC Part 1"
 stage gcc_extract
 stage newlib_extract
 
-stage gcc_patch
 stage gcc_configure
 stage gcc_build
 stage gcc_install
@@ -304,10 +298,7 @@ msg "Completed GCC Part 1"
 
 msg "Starting Newlib"
 
-stage newlib_patch
 stage newlib_configure
-
-stage makesymlink
 
 stage newlib_build
 stage newlib_install
